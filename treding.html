@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Prediksi Market - Real-time</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1></h1>
+
+  <button class="menu-button" onclick="toggleSidebar()">☰ MENU</button>
+
+  <div class="wrapper">
+    <aside class="sidebar" id="sidebar">
+      <h2><i class="fas fa-coins"></i> MarketPredict</h2>
+      <ul>
+        <li><a href="treding.html" class="nav-link active"><i class="fas fa-chart-line"></i> Prediksi Live</a></li>
+        <li><a href="about.html" class="nav-link"><i class="fas fa-info-circle"></i> Tentang Kami</a></li>
+        <li><a href="profile.html" class="nav-link"><i class="fas fa-user-circle"></i> Profil Pengguna</a></li>
+      </ul>
+      <button onclick="toggleTheme()" class="toggle-theme-button"><i class="fas fa-adjust"></i> Mode Gelap / Terang</button>
+    </aside>
+
+    <div class="main-content" id="main">
+      <header>
+        <h1 class="section-title">📈 Prediksi Market Real-time</h1>
+      </header>
+
+      <section id="predictions-section">
+        <div class="prediction-grid">
+          <div class="prediction-card">
+            <h2>Prediksi Bitcoin (BTC)</h2>
+            <div class="price-data">
+              <span class="price-item"><strong>15 Menit Lalu:</strong> <span id="btcPrice15MinAgo">Loading...</span></span>
+              <span class="price-item"><strong>Sekarang:</strong> <span id="btcPriceNow">Loading...</span></span>
+            </div>
+            <div class="prediction-result" id="btcPredictionResult"></div>
+          </div>
+
+          <div class="prediction-card">
+            <h2>Prediksi XRP (Ripple)</h2>
+            <div class="price-data">
+              <span class="price-item"><strong>15 Menit Lalu:</strong> <span id="xrpPrice15MinAgo">Loading...</span></span>
+              <span class="price-item"><strong>Sekarang:</strong> <span id="xrpPriceNow">Loading...</span></span>
+            </div>
+            <div class="prediction-result" id="xrpPredictionResult"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="prediction-card" style="margin-top: 40px;">
+        <h2>📝 Catat Transaksi</h2>
+        <form id="transactionForm">
+          <input type="text" id="userName" placeholder="Nama Anda" required />
+          <select id="coinName">
+            <option value="BTC">Bitcoin (BTC)</option>
+            <option value="XRP">XRP (Ripple)</option>
+          </select>
+          <select id="type">
+            <option value="beli">Beli</option>
+            <option value="jual">Jual</option>
+          </select>
+          <input type="number" id="amount" placeholder="Jumlah Koin" required />
+          <button type="submit">Catat</button>
+        </form>
+
+        <div id="transactionList" style="margin-top: 30px;">
+          <h3>📋 Riwayat Transaksi</h3>
+          <ul id="listData"></ul>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 MarketPredict. Semua Hak Dilindungi.</p>
+  </footer>
+
+  <script>
+    const apiURL = 'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ripple&vs_currencies=idr';
+
+    function formatCurrency(value) {
+      return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+      }).format(value);
+    }
+
+    async function fetchPricesAndUpdate() {
+      try {
+        const res = await fetch(apiURL);
+        const data = await res.json();
+
+        const btcNow = data.bitcoin.idr;
+        const xrpNow = data.ripple.idr;
+
+        const now = Date.now();
+        const stored = JSON.parse(localStorage.getItem('priceHistory') || '{}');
+
+        // Simpan harga jika belum ada atau sudah lebih dari 15 menit
+        const fifteenMinutes = 15 * 60 * 1000;
+
+        if (!stored.btc || now - stored.btc.time > fifteenMinutes) {
+          stored.btc = { price: btcNow, time: now };
+        }
+        if (!stored.xrp || now - stored.xrp.time > fifteenMinutes) {
+          stored.xrp = { price: xrpNow, time: now };
+        }
+
+        localStorage.setItem('priceHistory', JSON.stringify(stored));
+
+        updatePrediction('btc', stored.btc.price, btcNow);
+        updatePrediction('xrp', stored.xrp.price, xrpNow);
+      } catch (err) {
+        console.error('Gagal ambil harga real-time:', err);
+      }
+    }
+
+    function updatePrediction(type, price15MinAgo, priceNow) {
+      const elPriceAgo = document.getElementById(`${type}Price15MinAgo`);
+      const elPriceNow = document.getElementById(`${type}PriceNow`);
+      const elResult = document.getElementById(`${type}PredictionResult`);
+
+      elPriceAgo.textContent = formatCurrency(price15MinAgo);
+      elPriceNow.textContent = formatCurrency(priceNow);
+
+      const diff = priceNow - price15MinAgo;
+      let trend = 'hold', icon = '↔️', className = 'hold';
+      if (diff > 0) {
+        trend = 'NAIK';
+        icon = '⬆️';
+        className = 'buy';
+      } else if (diff < 0) {
+        trend = 'TURUN';
+        icon = '⬇️';
+        className = 'sell';
+      }
+
+      elResult.className = `prediction-result ${className}`;
+      elResult.innerHTML = `${icon} ${type.toUpperCase()} diperkirakan <strong>${trend}</strong> dalam 15 menit ke depan.`;
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+    }
+
+    const transactionForm = document.getElementById('transactionForm');
+    const listData = document.getElementById('listData');
+
+    transactionForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      const name = document.getElementById('userName').value.trim();
+      const coin = document.getElementById('coinName').value;
+      const type = document.getElementById('type').value;
+      const amount = parseFloat(document.getElementById('amount').value);
+      const now = new Date().toLocaleString('id-ID');
+      const priceNow = JSON.parse(localStorage.getItem('priceHistory'))?.[coin.toLowerCase()]?.price || 0;
+
+      const entry = {
+        name, coin, type, amount, price: priceNow, date: now
+      };
+
+      let records = JSON.parse(localStorage.getItem('records')) || [];
+      records.push(entry);
+      localStorage.setItem('records', JSON.stringify(records));
+
+      transactionForm.reset();
+      loadTransactions();
+    });
+
+    function loadTransactions() {
+      const records = JSON.parse(localStorage.getItem('records')) || [];
+      listData.innerHTML = '';
+      records.slice().reverse().forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name} ${item.type.toUpperCase()} ${item.amount} ${item.coin} @ ${formatCurrency(item.price)} [${item.date}]`;
+        listData.appendChild(li);
+      });
+    }
+
+    // Auto refresh tiap 5 menit
+    setTimeout(() => location.reload(), 50000);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchPricesAndUpdate();
+      loadTransactions();
+      const headerHeight = document.querySelector('header').offsetHeight;
+      document.getElementById('main').style.paddingTop = `${headerHeight + 20}px`;
+    });
+
+    window.addEventListener('resize', () => {
+      const headerHeight = document.querySelector('header').offsetHeight;
+      document.getElementById('main').style.paddingTop = `${headerHeight + 20}px`;
+    });
+  </script>
+
+</body>
+</html>

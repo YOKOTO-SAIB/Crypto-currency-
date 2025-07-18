@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tentang Kami - MarketPredict</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="style.css"> </head>
+<body>
+
+  <button class="menu-button" onclick="toggleSidebar()">☰ MENU</button>
+
+  <div class="wrapper">
+    <aside class="sidebar" id="sidebar">
+      <h2><i class="fas fa-coins"></i> MarketPredict</h2>
+      <ul>
+        <li><a href="treding.html" class="nav-link"><i class="fas fa-chart-line"></i> Prediksi Live</a></li>
+        <li><a href="about.html" class="nav-link active"><i class="fas fa-info-circle"></i> Tentang Kami</a></li>
+        <li><a href="profile.html" class="nav-link"><i class="fas fa-user-circle"></i> Profil Pengguna</a></li>
+      </ul>
+      <button onclick="toggleTheme()" class="toggle-theme-button"><i class="fas fa-adjust"></i> Mode Gelap / Terang</button>
+    </aside>
+
+    <div class="main-content" id="main">
+      <header>
+        <h1 class="section-title">ℹ️ Tentang Kami</h1>
+      </header>
+
+      <section class="about-section">
+        <h2><i class="fas fa-info-circle"></i> Tentang Kami</h2>
+        <p>MarketPredict adalah platform prediksi pasar inovatif yang dirancang untuk membantu Anda mengambil keputusan investasi yang lebih cerdas. Kami menyediakan analisis tren pasar secara manual dan real-time untuk berbagai aset, termasuk mata uang kripto seperti Bitcoin (BTC) dan pasangan mata uang seperti USD/IDR.</p>
+        <p>Dengan fokus pada akurasi dan kemudahan penggunaan, kami bertujuan untuk menjadi sumber terpercaya Anda dalam memahami dinamika pasar. Meskipun prediksi kami berdasarkan analisis cermat, ingatlah bahwa pasar dapat bergejolak dan investasi selalu memiliki risiko. Selalu lakukan riset Anda sendiri sebelum membuat keputusan investasi.</p>
+        <h3><i class="fas fa-lightbulb"></i> Fitur Utama:</h3>
+        <ul>
+          <li><i class="fas fa-check-circle"></i> Prediksi Tren Pasar untuk Berbagai Aset</li>
+          <li><i class="fas fa-check-circle"></i> Pembaruan Data Harga Real-time</li>
+          <li><i class="fas fa-check-circle"></i> Antarmuka Pengguna yang Intuitif dan Responsif</li>
+          <li><i class="fas fa-check-circle"></i> Mode Gelap/Terang untuk Kenyamanan Visual</li>
+          <li><i class="fas fa-check-circle"></i> Analisis Pasar yang Disederhanakan</li>
+        </ul>
+        <p>Kami terus berupaya meningkatkan platform kami dengan fitur-fitur baru dan data yang lebih komprehensif. Tetap pantau untuk pembaruan!</p>
+      </section>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 MarketPredict. Semua Hak Dilindungi.</p>
+  </footer>
+
+  <script>
+    // Fungsi untuk mengelola sidebar dan tema
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('active');
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('light-mode');
+    }
+
+    // Script untuk menandai link aktif di sidebar
+    document.addEventListener('DOMContentLoaded', () => {
+      // Dapatkan path halaman saat ini (misal: "about.html")
+      const currentPath = window.location.pathname.split('/').pop();
+      
+      // Hapus kelas 'active' dari semua link
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('active');
+      });
+
+      // Tambahkan kelas 'active' ke link yang cocok dengan halaman saat ini
+      document.querySelectorAll('.nav-link').forEach(link => {
+        if (link.getAttribute('href') === currentPath) {
+          link.classList.add('active');
+        }
+      });
+
+      const headerHeight = document.querySelector('header').offsetHeight;
+      document.getElementById('main').style.paddingTop = `${headerHeight + 20}px`;
+    });
+
+    window.addEventListener('resize', () => {
+      const headerHeight = document.querySelector('header').offsetHeight;
+      document.getElementById('main').style.paddingTop = `${headerHeight + 20}px`;
+    });
+  </script>
+
+</body>
+</html>
